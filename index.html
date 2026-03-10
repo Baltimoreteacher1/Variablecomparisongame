@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Graph Galaxy 3D | Independent & Dependent Variables</title>
+  <title>Graph Galaxy 3D | Fixed + Enhanced</title>
   <style>
     :root{
       --bg:#07111a;
@@ -26,9 +26,18 @@
       --radius:18px;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#143247 0%,#0a1722 55%,#040b11 100%);color:var(--text)}
+    html,body{
+      margin:0;height:100%;overflow:hidden;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top,#143247 0%,#0a1722 55%,#040b11 100%);
+      color:var(--text)
+    }
     #app{display:grid;grid-template-columns:360px 1fr;height:100%}
-    #sidebar{background:linear-gradient(180deg,rgba(13,31,44,.98),rgba(9,24,35,.98));border-right:1px solid rgba(255,255,255,.08);padding:16px;display:flex;flex-direction:column;gap:12px;overflow:auto;backdrop-filter:blur(10px)}
+    #sidebar{
+      background:linear-gradient(180deg,rgba(13,31,44,.98),rgba(9,24,35,.98));
+      border-right:1px solid rgba(255,255,255,.08);
+      padding:16px;display:flex;flex-direction:column;gap:12px;overflow:auto;backdrop-filter:blur(10px)
+    }
     #sceneWrap{position:relative;min-width:0}
     #scene{width:100%;height:100%}
     .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
@@ -45,7 +54,10 @@
     .mission strong{color:var(--gold)}
     .mini{font-size:.88rem;line-height:1.45;color:var(--muted)}
     .controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    button{appearance:none;border:none;border-radius:14px;padding:12px 14px;font-weight:850;cursor:pointer;transition:transform .15s ease,filter .15s ease,opacity .15s ease;box-shadow:var(--shadow)}
+    button{
+      appearance:none;border:none;border-radius:14px;padding:12px 14px;font-weight:850;cursor:pointer;
+      transition:transform .15s ease,filter .15s ease,opacity .15s ease;box-shadow:var(--shadow)
+    }
     button:hover{transform:translateY(-1px)}
     button:active{transform:translateY(1px)}
     .primary{background:linear-gradient(135deg,var(--teal),#95fff4);color:#07313c}
@@ -69,22 +81,41 @@
     #crosshair::before{left:8px;top:0;width:2px;height:18px}
     #crosshair::after{top:8px;left:0;width:18px;height:2px}
     #hudTop{position:absolute;left:18px;right:18px;top:18px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;gap:14px}
-    .hudCard{background:rgba(8,20,30,.7);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow)}
+    .hudCard{background:rgba(8,20,30,.74);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow)}
     .hudRow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .bar{width:180px;height:12px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
     .bar > span{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--teal))}
     #toast{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);background:rgba(8,20,30,.94);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:12px 16px;min-width:280px;max-width:min(92vw,760px);text-align:center;box-shadow:var(--shadow);font-weight:850;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease}
     #toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
-    #resultsModal{position:absolute;inset:0;background:rgba(3,9,14,.72);display:none;place-items:center;padding:20px;z-index:6}
-    #resultsCard{width:min(760px,96vw);background:linear-gradient(180deg,#12283a,#0c1c2a);border:1px solid rgba(255,255,255,.09);border-radius:24px;padding:22px;box-shadow:var(--shadow)}
-    #resultsCard h3{font-size:1.35rem;margin:0 0 8px}
+    #resultsModal,#loadingOverlay{
+      position:absolute;inset:0;background:rgba(3,9,14,.72);display:none;place-items:center;padding:20px;z-index:6
+    }
+    #loadingOverlay{display:grid;background:radial-gradient(circle at top, rgba(20,50,71,.95), rgba(4,11,17,.96))}
+    .loadingCard,#resultsCard{
+      width:min(760px,96vw);
+      background:linear-gradient(180deg,#12283a,#0c1c2a);
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:24px;padding:22px;box-shadow:var(--shadow)
+    }
+    #resultsCard h3,.loadingCard h3{font-size:1.35rem;margin:0 0 8px}
     .resultsGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
     .resultBox{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px}
     .footerNote{font-size:.82rem;color:var(--muted);line-height:1.4}
+    .coordReadout{
+      position:absolute;right:18px;bottom:18px;z-index:4;
+      background:rgba(8,20,30,.78);border:1px solid rgba(255,255,255,.09);
+      border-radius:14px;padding:10px 12px;box-shadow:var(--shadow);font-weight:800
+    }
+    .targetReady{color:var(--ok)}
+    .errorBox{
+      margin-top:10px;padding:12px;border-radius:12px;background:rgba(255,107,107,.12);
+      border:1px solid rgba(255,107,107,.35);white-space:pre-wrap;font-family:ui-monospace,monospace
+    }
     @media (max-width:1100px){
       #app{grid-template-columns:1fr}
-      #sidebar{position:absolute;left:12px;right:12px;bottom:12px;z-index:5;max-height:50%;border-right:none}
+      #sidebar{position:absolute;left:12px;right:12px;bottom:12px;z-index:5;max-height:52%;border-right:none}
       #hudTop{top:12px;left:12px;right:12px}
+      .coordReadout{right:12px;bottom:12px}
     }
   </style>
 </head>
@@ -95,7 +126,7 @@
         <div class="logo">GX</div>
         <div>
           <h1>Graph Galaxy 3D</h1>
-          <div class="sub">Grade 6 • Independent & Dependent Variables • Flagship Build</div>
+          <div class="sub">Grade 6 • Independent & Dependent Variables • Fixed Flagship Build</div>
         </div>
       </div>
 
@@ -119,7 +150,7 @@
         </div>
         <div class="mini" style="margin-top:10px">
           Move: <strong>W A S D</strong> • Up/Down: <strong>Q / E</strong> • Deploy: <strong>Spacebar</strong><br>
-          Goal: identify the <strong>independent variable</strong>, use the laser guides, and physically deploy the beacon at the correct ordered pair.
+          Goal: choose the independent variable, line up the laser guides, and physically deploy the beacon at the correct ordered pair.
         </div>
       </section>
 
@@ -157,13 +188,14 @@
       </section>
 
       <section class="panel footerNote">
-        Built for 6th-grade skill practice: identifying variable roles, assigning axes, interpreting tables, plotting ordered pairs, and explaining relationships between quantities.
+        Built for Grade 6 skill practice: identifying variable roles, assigning axes, interpreting tables, plotting ordered pairs, and explaining relationships between quantities.
       </section>
     </aside>
 
     <main id="sceneWrap">
       <div id="scene"></div>
       <div id="crosshair"></div>
+
       <div id="hudTop">
         <div class="hudCard">
           <div class="hudRow"><strong>Objective:</strong> <span id="hudObjective">Loading…</span></div>
@@ -173,7 +205,18 @@
           <div class="hudRow"><span>Level XP</span><div class="bar"><span id="xpBar"></span></div></div>
         </div>
       </div>
+
+      <div id="coordReadout" class="coordReadout">Laser guides: (0, 0)</div>
       <div id="toast"></div>
+
+      <div id="loadingOverlay">
+        <div class="loadingCard">
+          <h3>Launching Graph Galaxy 3D…</h3>
+          <div class="sub">Loading engine, mission data, and coordinate grid.</div>
+          <div id="loadingError" class="errorBox" style="display:none"></div>
+        </div>
+      </div>
+
       <div id="resultsModal">
         <div id="resultsCard">
           <h3>Mission Report</h3>
@@ -195,8 +238,8 @@
   </div>
 
   <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 
     const UI = {
       missionText: document.getElementById('missionText'),
@@ -214,6 +257,9 @@
       hudObjective: document.getElementById('hudObjective'),
       modeTag: document.getElementById('modeTag'),
       toast: document.getElementById('toast'),
+      coordReadout: document.getElementById('coordReadout'),
+      loadingOverlay: document.getElementById('loadingOverlay'),
+      loadingError: document.getElementById('loadingError'),
       scanBtn: document.getElementById('scanBtn'),
       sortBtn: document.getElementById('sortBtn'),
       bossBtn: document.getElementById('bossBtn'),
@@ -252,36 +298,23 @@
     ];
 
     const state = {
-      score: 0,
-      streak: 0,
-      xp: 0,
-      level: 1,
-      correct: 0,
-      attempts: 0,
-      missionsComplete: 0,
-      badges: new Set(),
-      current: null,
-      selectedChoice: null,
-      challengeIndex: 0,
-      placed: false,
-      bossMode: false,
-      muted: false,
-      missionResolved: false,
-      tableSorted: false,
-      canDeploy: false,
-      twrComplete: false,
+      score: 0, streak: 0, xp: 0, level: 1, correct: 0, attempts: 0, missionsComplete: 0,
+      badges: new Set(), current: null, selectedChoice: null, challengeIndex: 0,
+      placed: false, bossMode: false, muted: false, missionResolved: false,
+      tableSorted: false, canDeploy: false, twrComplete: false,
     };
 
     const sceneEl = document.getElementById('scene');
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x07111a);
     scene.fog = new THREE.Fog(0x263238, 24, 120);
 
-    const camera = new THREE.PerspectiveCamera(62, sceneEl.clientWidth / sceneEl.clientHeight, 0.1, 300);
+    const camera = new THREE.PerspectiveCamera(62, Math.max(1, sceneEl.clientWidth) / Math.max(1, sceneEl.clientHeight), 0.1, 300);
     camera.position.set(18, 16, 20);
 
-    const renderer = new THREE.WebGLRenderer({ antialias:true });
+    const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(sceneEl.clientWidth, sceneEl.clientHeight);
+    renderer.setSize(Math.max(1, sceneEl.clientWidth), Math.max(1, sceneEl.clientHeight));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     sceneEl.appendChild(renderer.domElement);
 
@@ -319,6 +352,14 @@
     const hero = makeHero();
     scene.add(hero.group);
 
+    function showLoader(msg = '', isError = false){
+      UI.loadingOverlay.style.display = 'grid';
+      UI.loadingError.style.display = msg ? 'block' : 'none';
+      UI.loadingError.textContent = msg;
+      if(isError) UI.loadingError.style.color = '#ffd7d7';
+    }
+    function hideLoader(){ UI.loadingOverlay.style.display = 'none'; }
+
     function makeHero(){
       const group = new THREE.Group();
       const body = new THREE.Mesh(
@@ -327,12 +368,14 @@
       );
       body.position.y = 1.2;
       group.add(body);
+
       const visor = new THREE.Mesh(
         new THREE.SphereGeometry(.22, 18, 18),
         new THREE.MeshStandardMaterial({ color:0xffd166, emissive:0x5e4c0d, emissiveIntensity:1 })
       );
       visor.position.set(0,.25,.48);
       body.add(visor);
+
       const ring = new THREE.Mesh(
         new THREE.TorusGeometry(.9,.08,16,48),
         new THREE.MeshStandardMaterial({ color:0x9f8cff, emissive:0x44378d, emissiveIntensity:.9 })
@@ -340,6 +383,7 @@
       ring.rotation.x = Math.PI/2;
       ring.position.y = .24;
       group.add(ring);
+
       group.position.set(-4,0,8);
       return { group, body, ring };
     }
@@ -400,15 +444,28 @@
       const copy = JSON.parse(JSON.stringify(base));
       const multiplier = randInt(2, 12);
       const xs = [1,2,3,4].map(v => v + randInt(0,1));
+
       if(copy.title === 'Water Bottles'){
         copy.pairs = [[2,1],[4,2],[6,3],[8,4]].map(([x,y]) => [x + randInt(0,2)*2, y + randInt(0,2)]);
         copy.targetPair = copy.pairs[randInt(1,3)];
       } else {
         copy.pairs = xs.map(x => [x, x * multiplier]);
         copy.targetPair = copy.pairs[randInt(1,3)];
-        copy.ruleText = base.ruleText.replace(/\$?\d+/, String(multiplier)).replace('3 centimeters', `${multiplier} centimeters`).replace('5 pages', `${multiplier} pages`).replace('6 miles', `${multiplier} miles`).replace('3 tokens', `${multiplier} tokens`).replace('12 each hour', `${multiplier} each hour`).replace('8.', `${multiplier}.`);
+        copy.ruleText = buildRuleText(copy.title, multiplier);
       }
       return copy;
+    }
+
+    function buildRuleText(title, multiplier){
+      switch(title){
+        case 'Movie Tickets': return `Each ticket costs $${multiplier}.`;
+        case 'Hours and Pay': return `A worker earns $${multiplier} each hour.`;
+        case 'Pages Read': return `A student reads ${multiplier} pages per minute.`;
+        case 'Plant Growth': return `The plant grows ${multiplier} centimeters each day.`;
+        case 'Bike Ride': return `The rider travels ${multiplier} miles each hour.`;
+        case 'Arcade Tokens': return `Each game costs ${multiplier} tokens.`;
+        default: return `The amount changes by ${multiplier} each step.`;
+      }
     }
 
     function chooseYStep(maxY){
@@ -419,7 +476,18 @@
       return 20;
     }
 
-    function clearGroup(group){ while(group.children.length) group.remove(group.children[0]); }
+    function clearGroup(group){
+      while(group.children.length){
+        const child = group.children[0];
+        if(child.geometry) child.geometry.dispose?.();
+        if(child.material){
+          if(Array.isArray(child.material)) child.material.forEach(m => m.dispose?.());
+          else child.material.dispose?.();
+        }
+        if(child.texture) child.texture.dispose?.();
+        group.remove(child);
+      }
+    }
 
     function roundRect(ctx,x,y,w,h,r){
       ctx.beginPath();
@@ -436,23 +504,30 @@
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
+
       ctx.clearRect(0,0,width,height);
       ctx.fillStyle = 'rgba(7,18,28,.84)';
       roundRect(ctx, 12, 22, width-24, height-44, 24); ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 4; roundRect(ctx, 12, 22, width-24, height-44, 24); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,.18)';
+      ctx.lineWidth = 4;
+      roundRect(ctx, 12, 22, width-24, height-44, 24); ctx.stroke();
+
       ctx.fillStyle = color;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.font = `800 ${font}px Inter, Arial`;
       wrapText(ctx, text, width/2, height/2, width-60, font*1.1);
+
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
       const mat = new THREE.SpriteMaterial({ map:texture, transparent:true });
-      return new THREE.Sprite(mat);
+      const sprite = new THREE.Sprite(mat);
+      sprite.userData.disposeTexture = texture;
+      return sprite;
     }
 
     function wrapText(ctx, text, x, y, maxWidth, lineHeight){
-      const words = text.split(' ');
+      const words = String(text).split(' ');
       const lines = [];
       let line = '';
       for(const word of words){
@@ -503,7 +578,11 @@
           if(child.userData.life <= 0) remove.push(child);
         }
       });
-      remove.forEach(r => worldFx.remove(r));
+      remove.forEach(r => {
+        r.geometry.dispose?.();
+        r.material.dispose?.();
+        worldFx.remove(r);
+      });
     }
 
     function updateHud(){
@@ -528,23 +607,18 @@
 
     function formatTable(data){
       const pairs = state.tableSorted ? data.pairs.slice().sort((a,b)=>a[0]-b[0]) : data.pairs;
-      const header = data.scrambled && !state.tableSorted ? data.title + '
-' + data.ruleText + '
-
-DATA SCRAMBLE: Table is out of order.' : data.title + '
-' + data.ruleText;
-      const rows = pairs.map(function(pair){
-        const x = pair[0], y = pair[1];
-        return String(data.xLabel).padEnd(12,' ') + ' ' + String(x).padStart(2,' ') + '  →  ' + String(data.yLabel).padEnd(12,' ') + ' ' + y;
-      });
-      return header + '
-
-' + rows.join('
-');
+      const header = data.scrambled && !state.tableSorted
+        ? `${data.title}\n${data.ruleText}\n\nDATA SCRAMBLE: Table is out of order.`
+        : `${data.title}\n${data.ruleText}`;
+      const rows = pairs.map(([x,y]) =>
+        `${String(data.xLabel).padEnd(12,' ')} ${String(x).padStart(2,' ')}  →  ${String(data.yLabel).padEnd(12,' ')} ${String(y)}`
+      );
+      return `${header}\n\n${rows.join('\n')}`;
     }
 
     function buildGraph(data, boss=false){
       clearGroup(graphGroup);
+
       const maxX = Math.max(...data.pairs.map(p=>p[0]), data.targetPair[0], CONFIG.worldRangeX);
       const maxY = Math.max(...data.pairs.map(p=>p[1]), data.targetPair[1]);
       const scaleX = 2;
@@ -552,14 +626,24 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       const xAxisLength = maxX * scaleX;
       const yAxisLength = maxY * scaleY;
 
-      const axisX = new THREE.Mesh(new THREE.BoxGeometry(xAxisLength + 2, .18, .18), new THREE.MeshStandardMaterial({ color:0x5eead4, emissive:0x0d6d67, emissiveIntensity:.8 }));
+      const axisX = new THREE.Mesh(
+        new THREE.BoxGeometry(xAxisLength + 2, .18, .18),
+        new THREE.MeshStandardMaterial({ color:0x5eead4, emissive:0x0d6d67, emissiveIntensity:.8 })
+      );
       axisX.position.set(xAxisLength/2, 0.15, 0);
       graphGroup.add(axisX);
-      const axisY = new THREE.Mesh(new THREE.BoxGeometry(.18, yAxisLength + 2, .18), new THREE.MeshStandardMaterial({ color:0xff8a65, emissive:0x6d2a14, emissiveIntensity:.8 }));
+
+      const axisY = new THREE.Mesh(
+        new THREE.BoxGeometry(.18, yAxisLength + 2, .18),
+        new THREE.MeshStandardMaterial({ color:0xff8a65, emissive:0x6d2a14, emissiveIntensity:.8 })
+      );
       axisY.position.set(0, yAxisLength/2, 0);
       graphGroup.add(axisY);
 
-      const panel = new THREE.Mesh(new THREE.BoxGeometry(xAxisLength + 2.5, yAxisLength + 2.2, .12), new THREE.MeshStandardMaterial({ color:0x112536, transparent:true, opacity:.2 }));
+      const panel = new THREE.Mesh(
+        new THREE.BoxGeometry(xAxisLength + 2.5, yAxisLength + 2.2, .12),
+        new THREE.MeshStandardMaterial({ color:0x112536, transparent:true, opacity:.2 })
+      );
       panel.position.set(xAxisLength/2, yAxisLength/2, -.22);
       graphGroup.add(panel);
 
@@ -568,40 +652,88 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
         const gx = x * scaleX;
         const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(gx,0,0), new THREE.Vector3(gx,yAxisLength,0)]);
         graphGroup.add(new THREE.Line(geo, lineMat));
-        const tick = new THREE.Mesh(new THREE.BoxGeometry(.09,.48,.09), new THREE.MeshStandardMaterial({ color:0xe5fbff }));
+
+        const tick = new THREE.Mesh(
+          new THREE.BoxGeometry(.09,.48,.09),
+          new THREE.MeshStandardMaterial({ color:0xe5fbff })
+        );
         tick.position.set(gx,.1,0);
         graphGroup.add(tick);
-        const lab = makeTextSprite(String(x), '#bffcf3', 280, 150, 70); lab.scale.set(1.6,.82,1); lab.position.set(gx,-1.1,0); graphGroup.add(lab);
+
+        const lab = makeTextSprite(String(x), '#bffcf3', 280, 150, 70);
+        lab.scale.set(1.6,.82,1);
+        lab.position.set(gx,-1.1,0);
+        graphGroup.add(lab);
       }
+
       const yStep = chooseYStep(maxY);
       for(let y=0;y<=maxY;y+=yStep){
         const gy = y * scaleY;
         const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,gy,0), new THREE.Vector3(xAxisLength,gy,0)]);
         graphGroup.add(new THREE.Line(geo, lineMat));
-        const tick = new THREE.Mesh(new THREE.BoxGeometry(.48,.09,.09), new THREE.MeshStandardMaterial({ color:0xffe5dc }));
+
+        const tick = new THREE.Mesh(
+          new THREE.BoxGeometry(.48,.09,.09),
+          new THREE.MeshStandardMaterial({ color:0xffe5dc })
+        );
         tick.position.set(0,gy,0);
         graphGroup.add(tick);
-        const lab = makeTextSprite(String(y), '#ffd9c6', 300, 150, 70); lab.scale.set(1.7,.84,1); lab.position.set(-1.5,gy,0); graphGroup.add(lab);
+
+        const lab = makeTextSprite(String(y), '#ffd9c6', 300, 150, 70);
+        lab.scale.set(1.7,.84,1);
+        lab.position.set(-1.5,gy,0);
+        graphGroup.add(lab);
       }
 
-      const xLab = makeTextSprite(`x: ${data.xLabel}`, '#95fff4', 720, 180, 72); xLab.scale.set(4.8,1.2,1); xLab.position.set(xAxisLength-1.8,-2.2,0); graphGroup.add(xLab);
-      const yLab = makeTextSprite(`y: ${data.yLabel}`, '#ffc5b1', 720, 180, 72); yLab.scale.set(4.8,1.2,1); yLab.position.set(-2.8,yAxisLength-1,0); graphGroup.add(yLab);
-      const title = makeTextSprite(data.title, '#ffffff', 840, 190, 86); title.scale.set(5.8,1.28,1); title.position.set(xAxisLength/2,yAxisLength+2.4,0); graphGroup.add(title);
-      const rule = makeTextSprite(data.ruleText, '#ffe9a6', 980, 190, 66); rule.scale.set(6.8,1.18,1); rule.position.set(xAxisLength/2,yAxisLength+4.0,0); graphGroup.add(rule);
+      const xLab = makeTextSprite(`x: ${data.xLabel}`, '#95fff4', 720, 180, 72);
+      xLab.scale.set(4.8,1.2,1);
+      xLab.position.set(xAxisLength-1.8,-2.2,0);
+      graphGroup.add(xLab);
+
+      const yLab = makeTextSprite(`y: ${data.yLabel}`, '#ffc5b1', 720, 180, 72);
+      yLab.scale.set(4.8,1.2,1);
+      yLab.position.set(-2.8,yAxisLength-1,0);
+      graphGroup.add(yLab);
+
+      const title = makeTextSprite(data.title, '#ffffff', 840, 190, 86);
+      title.scale.set(5.8,1.28,1);
+      title.position.set(xAxisLength/2,yAxisLength+2.4,0);
+      graphGroup.add(title);
+
+      const rule = makeTextSprite(data.ruleText, '#ffe9a6', 980, 190, 66);
+      rule.scale.set(6.8,1.18,1);
+      rule.position.set(xAxisLength/2,yAxisLength+4.0,0);
+      graphGroup.add(rule);
 
       data.pairs.forEach(([x,y]) => {
-        const dot = new THREE.Mesh(new THREE.SphereGeometry(.28, 18, 18), new THREE.MeshStandardMaterial({ color: boss ? 0x9f8cff : 0x567a95, transparent:true, opacity: boss ? .72 : .45, emissive: boss ? 0x342166 : 0x152633, emissiveIntensity: .9 }));
+        const dot = new THREE.Mesh(
+          new THREE.SphereGeometry(.28, 18, 18),
+          new THREE.MeshStandardMaterial({
+            color: boss ? 0x9f8cff : 0x567a95,
+            transparent:true,
+            opacity: boss ? .72 : .45,
+            emissive: boss ? 0x342166 : 0x152633,
+            emissiveIntensity: .9
+          })
+        );
         dot.position.set(x*scaleX, y*scaleY, 0.05);
         graphGroup.add(dot);
       });
 
       const [tx, ty] = data.targetPair;
-      const target = new THREE.Mesh(new THREE.TorusGeometry(.6,.12,16,42), new THREE.MeshStandardMaterial({ color: boss ? 0x9f8cff : 0xffd166, emissive: boss ? 0x3f2f7a : 0x7a5f0c, emissiveIntensity: 1.2 }));
+      const target = new THREE.Mesh(
+        new THREE.TorusGeometry(.6,.12,16,42),
+        new THREE.MeshStandardMaterial({
+          color: boss ? 0x9f8cff : 0xffd166,
+          emissive: boss ? 0x3f2f7a : 0x7a5f0c,
+          emissiveIntensity: 1.2
+        })
+      );
       target.rotation.x = Math.PI / 2;
       target.position.set(tx * scaleX, ty * scaleY, 0.1);
       graphGroup.add(target);
 
-      data.__graph = { maxX, maxY, scaleX, scaleY, target };
+      data.__graph = { maxX, maxY, scaleX, scaleY, target, guideX:null, guideY:null };
     }
 
     function buildChoiceButtons(data, boss=false){
@@ -609,10 +741,11 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       const wrongA = `Dependent variable: ${data.dependent}`;
       const wrongB = `Put ${data.yLabel} on the x-axis`;
       const wrongC = `Put ${data.xLabel} on the y-axis`;
-      const choices = shuffle([correct, wrongA, wrongB, wrongC]).slice(0, boss ? 4 : 3);
-      if(!choices.includes(correct)) choices[0] = correct;
+      const choices = boss ? shuffle([correct, wrongA, wrongB, wrongC]) : shuffle([correct, wrongA, wrongB]).slice(0,3);
+
       UI.answerChoices.innerHTML = '';
       state.selectedChoice = null;
+
       choices.forEach(text => {
         const btn = document.createElement('button');
         btn.className = 'choice';
@@ -628,6 +761,7 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       state.selectedChoice = { isCorrect };
       state.attempts += 1;
       [...UI.answerChoices.children].forEach(c=>c.disabled = true);
+
       if(isCorrect){
         btn.classList.add('correct');
         UI.feedback.textContent = `Correct. The independent variable is ${state.current.independent}. It belongs on the x-axis.`;
@@ -637,7 +771,9 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
         audio.success();
       } else {
         btn.classList.add('wrong');
-        [...UI.answerChoices.children].forEach(c=>{ if(c.textContent === correctText) c.classList.add('correct'); });
+        [...UI.answerChoices.children].forEach(c=>{
+          if(c.textContent === correctText) c.classList.add('correct');
+        });
         UI.feedback.textContent = `Not quite. The independent variable is ${state.current.independent}, so it goes on the x-axis.`;
         gain(0, false);
         audio.fail();
@@ -669,15 +805,21 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       state.bossMode = false;
       state.placed = false;
       state.missionResolved = false;
+      state.tableSorted = false;
+      state.twrComplete = false;
       UI.modeTag.textContent = 'Mission';
       UI.feedback.textContent = '';
+
       const data = scenarioForIndex(index);
       state.current = data;
+
       buildGraph(data, false);
       buildChoiceButtons(data, false);
+
       UI.missionText.innerHTML = `<strong>${data.title}</strong><br>Choose the <strong>independent variable</strong>, then graph the point <strong>(${data.targetPair[0]}, ${data.targetPair[1]})</strong> from the table.`;
       UI.tableBlock.textContent = formatTable(data);
       UI.hudObjective.textContent = `Find the independent variable, then graph (${data.targetPair[0]}, ${data.targetPair[1]}).`;
+      UI.coordReadout.textContent = 'Laser guides: (0, 0)';
       toast(`Mission ${index + 1}: ${data.title}`);
       updateHud();
     }
@@ -686,12 +828,17 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       state.bossMode = true;
       state.placed = false;
       state.missionResolved = false;
+      state.tableSorted = false;
+      state.twrComplete = false;
       UI.modeTag.textContent = 'Boss';
       UI.feedback.textContent = '';
+
       const boss = makeBossScenario();
       state.current = boss;
+
       buildGraph(boss, true);
       buildChoiceButtons(boss, true);
+
       UI.missionText.innerHTML = `<strong>Boss Round: Data Core Overload</strong><br>Step 1: Choose the independent variable. Step 2: Graph the highlighted boss point. Step 3: Explain the relationship in your own words after you win.`;
       UI.tableBlock.textContent = formatTable(boss);
       UI.hudObjective.textContent = `Boss: graph (${boss.targetPair[0]}, ${boss.targetPair[1]}) and explain the relationship.`;
@@ -701,16 +848,14 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
     }
 
     function makeBossScenario(){
-      const xLabel = 'hours';
-      const yLabel = 'distance (miles)';
       const multiplier = randInt(7, 12);
       const pairs = [[1,multiplier],[2,multiplier*2],[3,multiplier*3],[4,multiplier*4],[5,multiplier*5]];
       return {
         title:'Galaxy Delivery Boss',
         independent:'hours traveled',
         dependent:'distance traveled',
-        xLabel,
-        yLabel,
+        xLabel:'hours',
+        yLabel:'distance (miles)',
         ruleText:`The ship travels ${multiplier} miles each hour.`,
         pairs,
         targetPair:pairs[randInt(2,4)],
@@ -724,17 +869,18 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       if(!state.selectedChoice.isCorrect){
         toast('Wrong variable choice. Watch the graph flip to see why.');
         graphGroup.rotation.z = -0.22;
-        setTimeout(function(){ graphGroup.rotation.z = 0; }, 380);
+        setTimeout(()=>{ graphGroup.rotation.z = 0; }, 380);
         return;
       }
-      const target = state.current && state.current.__graph ? state.current.__graph.target : null;
+      const target = state.current?.__graph?.target;
       if(!target) return;
+
       target.scale.setScalar(1.55);
-      setTimeout(function(){ target.scale.setScalar(1); }, 280);
+      setTimeout(()=> target.scale.setScalar(1), 280);
       makeParticleBurst(target.position.clone(), state.bossMode ? 0x9f8cff : 0xffd166, 14);
       toast('Target locked. Fly there and press Spacebar.');
       audio.beep(700,.08,'triangle',.04);
-      if(state.selectedChoice.isCorrect) awardBadge('Scanner Ready');
+      awardBadge('Scanner Ready');
     }
 
     function placeBeacon(){
@@ -742,12 +888,14 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       if(!state.selectedChoice){ toast('Answer the variable question first.'); return; }
       if(!state.selectedChoice.isCorrect){ toast('Choose the correct independent variable first.'); return; }
       if(state.placed){ toast('Beacon already placed. Move to the next mission.'); return; }
+
       const graph = state.current.__graph;
       const targetPos = graph.target.position;
       const heroPos = hero.group.position;
       const dx = Math.abs(heroPos.x - targetPos.x);
       const dy = Math.abs(heroPos.y - targetPos.y);
       const dz = Math.abs(heroPos.z - targetPos.z);
+
       if(dx > CONFIG.targetToleranceX || dy > CONFIG.targetToleranceY || dz > CONFIG.targetToleranceZ){
         toast('Not close enough yet. Use the laser guides to line up your coordinate.');
         audio.fail();
@@ -756,13 +904,20 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
         updateHud();
         return;
       }
+
       const beacon = new THREE.Mesh(
         new THREE.SphereGeometry(.44, 20, 20),
-        new THREE.MeshStandardMaterial({ color: state.bossMode ? 0x9f8cff : 0x9be7c4, emissive: state.bossMode ? 0x382a82 : 0x275c46, emissiveIntensity: 1 })
+        new THREE.MeshStandardMaterial({
+          color: state.bossMode ? 0x9f8cff : 0x9be7c4,
+          emissive: state.bossMode ? 0x382a82 : 0x275c46,
+          emissiveIntensity: 1
+        })
       );
       beacon.position.copy(targetPos);
       graphGroup.add(beacon);
+
       makeParticleBurst(beacon.position.clone(), state.bossMode ? 0x9f8cff : 0x9be7c4, 28);
+
       state.attempts += 1;
       state.correct += 1;
       state.placed = true;
@@ -771,11 +926,17 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       gain(state.bossMode ? 48 : 30, true);
       awardBadge('Graph Master');
       audio.success();
+
       if(state.bossMode){
         awardBadge('Boss Winner');
         UI.feedback.textContent = 'Boss point secured. Complete the TWR sentence to finish.';
-        UI.missionText.innerHTML = '<strong>TWR Response</strong><br>The distance traveled is the dependent variable because <input id="twrInput" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#FFFDE7;color:#263238" placeholder="type your because statement here" /> <button id="twrSubmit" class="primary" style="margin-top:10px">Submit TWR</button>';
-        setTimeout(function(){
+        UI.missionText.innerHTML = `
+          <strong>TWR Response</strong><br>
+          The distance traveled is the dependent variable because
+          <input id="twrInput" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#FFFDE7;color:#263238" placeholder="type your because statement here" />
+          <button id="twrSubmit" class="primary" style="margin-top:10px">Submit TWR</button>
+        `;
+        setTimeout(() => {
           const submit = document.getElementById('twrSubmit');
           if(submit){
             submit.addEventListener('click', function(){
@@ -785,7 +946,7 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
               state.twrComplete = true;
               UI.feedback.textContent = 'Strong explanation. You connected the dependent variable to the independent variable.';
               showResults();
-            });
+            }, { once:true });
           }
         }, 0);
       } else if(state.missionsComplete % CONFIG.maxMissionsBeforeBossPrompt === 0){
@@ -795,6 +956,7 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
         UI.feedback.textContent = 'Nice work. You physically graphed the correct point.';
         toast('Beacon placed correctly.');
       }
+
       updateHud();
     }
 
@@ -816,7 +978,15 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       UI.rAccuracy.textContent = `${acc}%`;
       UI.rLevel.textContent = state.level;
       UI.rBadges.innerHTML = [...state.badges].map(b=>`<span class="chip">${b}</span>`).join('') || '<span class="chip">No badges yet</span>';
-      UI.rSummary.innerHTML = `<strong>Skills Practiced</strong><br>• Identifying the independent variable<br>• Matching variables to the x-axis and y-axis<br>• Reading tables and ordered pairs<br>• Graphing correct points on a coordinate plane<br><br><strong>Performance Note</strong><br>The player completed ${state.missionsComplete} mission(s) with ${acc}% accuracy.`;
+      UI.rSummary.innerHTML = `
+        <strong>Skills Practiced</strong><br>
+        • Identifying the independent variable<br>
+        • Matching variables to the x-axis and y-axis<br>
+        • Reading tables and ordered pairs<br>
+        • Graphing correct points on a coordinate plane<br><br>
+        <strong>Performance Note</strong><br>
+        The player completed ${state.missionsComplete} mission(s) with ${acc}% accuracy.
+      `;
       UI.resultsModal.style.display = 'grid';
     }
 
@@ -835,13 +1005,17 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       state.placed = false;
       state.bossMode = false;
       state.missionResolved = false;
+      state.tableSorted = false;
+      state.canDeploy = false;
+      state.twrComplete = false;
       UI.resultsModal.style.display = 'none';
-      scene.background = new THREE.Color(0x263238);
-    loadMission(0);
+      loadMission(0);
+      updateHud();
     }
 
     UI.scanBtn.addEventListener('click', scanTarget);
     UI.sortBtn.addEventListener('click', function(){
+      if(!state.current) return;
       state.tableSorted = true;
       UI.tableBlock.textContent = formatTable(state.current);
       toast('Table sorted by x-values.');
@@ -855,7 +1029,10 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
     UI.bossBtn.addEventListener('click', loadBoss);
     UI.hintBtn.addEventListener('click', showHint);
     UI.resetBtn.addEventListener('click', resetView);
-    UI.muteBtn.addEventListener('click', () => { state.muted = !state.muted; UI.muteBtn.textContent = `Audio: ${state.muted ? 'Off' : 'On'}`; });
+    UI.muteBtn.addEventListener('click', () => {
+      state.muted = !state.muted;
+      UI.muteBtn.textContent = `Audio: ${state.muted ? 'Off' : 'On'}`;
+    });
     UI.closeResults.addEventListener('click', () => UI.resultsModal.style.display = 'none');
     UI.restartResults.addEventListener('click', restartGame);
 
@@ -870,9 +1047,11 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
     window.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 
     window.addEventListener('resize', () => {
-      camera.aspect = sceneEl.clientWidth / sceneEl.clientHeight;
+      const w = Math.max(1, sceneEl.clientWidth);
+      const h = Math.max(1, sceneEl.clientHeight);
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(sceneEl.clientWidth, sceneEl.clientHeight);
+      renderer.setSize(w, h);
     });
 
     function moveHero(){
@@ -883,6 +1062,7 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
       if(keys.has('d')) dir.x += 1;
       if(keys.has('q')) dir.y += .65;
       if(keys.has('e')) dir.y -= .65;
+
       if(dir.lengthSq() > 0){
         dir.normalize().multiplyScalar(CONFIG.heroSpeed * (state.bossMode ? 1.08 : 1));
         hero.group.position.add(dir);
@@ -890,47 +1070,83 @@ DATA SCRAMBLE: Table is out of order.' : data.title + '
         hero.group.position.y = THREE.MathUtils.clamp(hero.group.position.y, 0, 28);
         hero.group.position.z = THREE.MathUtils.clamp(hero.group.position.z, -18, 18);
       }
+
       hero.group.rotation.y += 0.02;
       hero.ring.rotation.z += 0.04;
-      if(state.current && state.current.__graph){
+
+      if(state.current?.__graph){
         const g = state.current.__graph;
+
         if(!g.guideX){
-          g.guideX = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]), new THREE.LineBasicMaterial({ color:0x009688, transparent:true, opacity:.8 }));
-          g.guideY = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]), new THREE.LineBasicMaterial({ color:0xFF7043, transparent:true, opacity:.8 }));
+          g.guideX = new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]),
+            new THREE.LineBasicMaterial({ color:0x009688, transparent:true, opacity:.8 })
+          );
+          g.guideY = new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]),
+            new THREE.LineBasicMaterial({ color:0xFF7043, transparent:true, opacity:.8 })
+          );
           graphGroup.add(g.guideX, g.guideY);
         }
+
         const clampedX = THREE.MathUtils.clamp(hero.group.position.x, 0, g.maxX * g.scaleX);
         const clampedY = THREE.MathUtils.clamp(hero.group.position.y, 0, g.maxY * g.scaleY);
+
         g.guideX.geometry.setFromPoints([new THREE.Vector3(clampedX,0,0), new THREE.Vector3(clampedX,clampedY,0)]);
         g.guideY.geometry.setFromPoints([new THREE.Vector3(0,clampedY,0), new THREE.Vector3(clampedX,clampedY,0)]);
+
         const currentX = Math.round(clampedX / g.scaleX);
         const currentY = Math.round(clampedY / g.scaleY);
-        state.canDeploy = Math.abs(clampedX - g.target.position.x) <= CONFIG.targetToleranceX && Math.abs(clampedY - g.target.position.y) <= CONFIG.targetToleranceY && Math.abs(hero.group.position.z - g.target.position.z) <= CONFIG.targetToleranceZ;
-        UI.hudObjective.textContent = 'Target ' + state.current.targetPair[0] + ', ' + state.current.targetPair[1] + ' | Your laser guides: (' + currentX + ', ' + currentY + ')' + (state.canDeploy ? ' • READY TO DEPLOY' : '');
+
+        state.canDeploy =
+          Math.abs(clampedX - g.target.position.x) <= CONFIG.targetToleranceX &&
+          Math.abs(clampedY - g.target.position.y) <= CONFIG.targetToleranceY &&
+          Math.abs(hero.group.position.z - g.target.position.z) <= CONFIG.targetToleranceZ;
+
+        UI.hudObjective.textContent = `Target ${state.current.targetPair[0]}, ${state.current.targetPair[1]} | Your laser guides: (${currentX}, ${currentY})${state.canDeploy ? ' • READY TO DEPLOY' : ''}`;
+        UI.coordReadout.innerHTML = `Laser guides: (${currentX}, ${currentY}) ${state.canDeploy ? '<span class="targetReady">• READY</span>' : ''}`;
       }
     }
 
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
     function animate(){
       requestAnimationFrame(animate);
       const delta = Math.min(clock.getDelta(), .03);
       stars.rotation.y += 0.00065;
       moveHero();
       updateParticles(delta);
+
       if(state.current?.__graph?.target){
         const t = state.current.__graph.target;
         t.rotation.z += .025;
         const s = 1 + Math.sin(performance.now() * 0.006) * 0.08;
         t.scale.setScalar(s);
       }
+
       controls.update();
       renderer.render(scene, camera);
     }
 
-    loadMission(0);
-    resetView();
-    updateHud();
-    animate();
+    async function init(){
+      try{
+        showLoader();
+        loadMission(0);
+        resetView();
+        updateHud();
+        animate();
+        hideLoader();
+      }catch(err){
+        console.error(err);
+        showLoader(`Engine failed to start.\n\n${err?.message || err}`, true);
+      }
+    }
+
+    window.addEventListener('error', (e) => {
+      console.error(e.error || e.message);
+      showLoader(`Runtime error:\n\n${(e.error && e.error.stack) || e.message}`, true);
+    });
+
+    init();
   </script>
 </body>
 </html>
