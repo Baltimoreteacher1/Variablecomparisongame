@@ -110,16 +110,16 @@
         <h2>Action Console</h2>
         <div class="controls">
           <button id="scanBtn" class="primary">Scan Data Core</button>
-          <button id="placeBtn" class="accent">Place Graph Beacon</button>
           <button id="bossBtn" class="violet">Boss Round</button>
+          <button id="sortBtn" class="secondary">Sort Table</button>
           <button id="nextBtn" class="secondary">Next Mission</button>
           <button id="hintBtn" class="secondary">Hint</button>
           <button id="resetBtn" class="secondary">Reset View</button>
           <button id="muteBtn" class="secondary wide">Audio: On</button>
         </div>
         <div class="mini" style="margin-top:10px">
-          Move: <strong>W A S D</strong> • Up/Down: <strong>Q / E</strong> • Look: <strong>mouse drag</strong><br>
-          Goal: identify the <strong>independent variable</strong>, match axes, and graph the correct ordered pair.
+          Move: <strong>W A S D</strong> • Up/Down: <strong>Q / E</strong> • Deploy: <strong>Spacebar</strong><br>
+          Goal: identify the <strong>independent variable</strong>, use the laser guides, and physically deploy the beacon at the correct ordered pair.
         </div>
       </section>
 
@@ -215,7 +215,7 @@
       modeTag: document.getElementById('modeTag'),
       toast: document.getElementById('toast'),
       scanBtn: document.getElementById('scanBtn'),
-      placeBtn: document.getElementById('placeBtn'),
+      sortBtn: document.getElementById('sortBtn'),
       bossBtn: document.getElementById('bossBtn'),
       nextBtn: document.getElementById('nextBtn'),
       hintBtn: document.getElementById('hintBtn'),
@@ -234,8 +234,11 @@
     const CONFIG = {
       xpPerLevel: 140,
       worldRangeX: 10,
-      heroSpeed: 0.16,
+      heroSpeed: 0.18,
       maxMissionsBeforeBossPrompt: 4,
+      targetToleranceX: 0.8,
+      targetToleranceY: 0.8,
+      targetToleranceZ: 1.2,
     };
 
     const SCENARIOS = [
@@ -264,11 +267,14 @@
       bossMode: false,
       muted: false,
       missionResolved: false,
+      tableSorted: false,
+      canDeploy: false,
+      twrComplete: false,
     };
 
     const sceneEl = document.getElementById('scene');
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x07111a, 24, 120);
+    scene.fog = new THREE.Fog(0x263238, 24, 120);
 
     const camera = new THREE.PerspectiveCamera(62, sceneEl.clientWidth / sceneEl.clientHeight, 0.1, 300);
     camera.position.set(18, 16, 20);
@@ -521,8 +527,20 @@
     }
 
     function formatTable(data){
-      const rows = data.pairs.map(([x,y]) => `${String(data.xLabel).padEnd(12,' ')} ${String(x).padStart(2,' ')}  →  ${String(data.yLabel).padEnd(12,' ')} ${y}`);
-      return `${data.title}\n${data.ruleText}\n\n${rows.join('\n')}`;
+      const pairs = state.tableSorted ? data.pairs.slice().sort((a,b)=>a[0]-b[0]) : data.pairs;
+      const header = data.scrambled && !state.tableSorted ? data.title + '
+' + data.ruleText + '
+
+DATA SCRAMBLE: Table is out of order.' : data.title + '
+' + data.ruleText;
+      const rows = pairs.map(function(pair){
+        const x = pair[0], y = pair[1];
+        return String(data.xLabel).padEnd(12,' ') + ' ' + String(x).padStart(2,' ') + '  →  ' + String(data.yLabel).padEnd(12,' ') + ' ' + y;
+      });
+      return header + '
+
+' + rows.join('
+');
     }
 
     function buildGraph(data, boss=false){
@@ -703,13 +721,18 @@
     function scanTarget(){
       audio.enable();
       if(!state.selectedChoice){ toast('Choose the independent variable first.'); return; }
-      if(!state.selectedChoice.isCorrect){ toast('Fix the variable choice before scanning.'); return; }
-      const target = state.current?.__graph?.target;
+      if(!state.selectedChoice.isCorrect){
+        toast('Wrong variable choice. Watch the graph flip to see why.');
+        graphGroup.rotation.z = -0.22;
+        setTimeout(function(){ graphGroup.rotation.z = 0; }, 380);
+        return;
+      }
+      const target = state.current && state.current.__graph ? state.current.__graph.target : null;
       if(!target) return;
       target.scale.setScalar(1.55);
-      setTimeout(()=>target.scale.setScalar(1), 280);
+      setTimeout(function(){ target.scale.setScalar(1); }, 280);
       makeParticleBurst(target.position.clone(), state.bossMode ? 0x9f8cff : 0xffd166, 14);
-      toast(`Target locked: (${state.current.targetPair[0]}, ${state.current.targetPair[1]}).`);
+      toast('Target locked. Fly there and press Spacebar.');
       audio.beep(700,.08,'triangle',.04);
       if(state.selectedChoice.isCorrect) awardBadge('Scanner Ready');
     }
@@ -720,11 +743,24 @@
       if(!state.selectedChoice.isCorrect){ toast('Choose the correct independent variable first.'); return; }
       if(state.placed){ toast('Beacon already placed. Move to the next mission.'); return; }
       const graph = state.current.__graph;
+      const targetPos = graph.target.position;
+      const heroPos = hero.group.position;
+      const dx = Math.abs(heroPos.x - targetPos.x);
+      const dy = Math.abs(heroPos.y - targetPos.y);
+      const dz = Math.abs(heroPos.z - targetPos.z);
+      if(dx > CONFIG.targetToleranceX || dy > CONFIG.targetToleranceY || dz > CONFIG.targetToleranceZ){
+        toast('Not close enough yet. Use the laser guides to line up your coordinate.');
+        audio.fail();
+        state.attempts += 1;
+        gain(0, false);
+        updateHud();
+        return;
+      }
       const beacon = new THREE.Mesh(
         new THREE.SphereGeometry(.44, 20, 20),
         new THREE.MeshStandardMaterial({ color: state.bossMode ? 0x9f8cff : 0x9be7c4, emissive: state.bossMode ? 0x382a82 : 0x275c46, emissiveIntensity: 1 })
       );
-      beacon.position.copy(graph.target.position);
+      beacon.position.copy(targetPos);
       graphGroup.add(beacon);
       makeParticleBurst(beacon.position.clone(), state.bossMode ? 0x9f8cff : 0x9be7c4, 28);
       state.attempts += 1;
@@ -735,15 +771,28 @@
       gain(state.bossMode ? 48 : 30, true);
       awardBadge('Graph Master');
       audio.success();
-      UI.feedback.textContent = state.bossMode
-        ? `Boss point secured. ${state.current.explain} Click Next Mission or review your results.`
-        : `Nice work. You graphed (${state.current.targetPair[0]}, ${state.current.targetPair[1]}) correctly. ${state.current.explain}`;
       if(state.bossMode){
         awardBadge('Boss Winner');
-        showResults();
+        UI.feedback.textContent = 'Boss point secured. Complete the TWR sentence to finish.';
+        UI.missionText.innerHTML = '<strong>TWR Response</strong><br>The distance traveled is the dependent variable because <input id="twrInput" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#FFFDE7;color:#263238" placeholder="type your because statement here" /> <button id="twrSubmit" class="primary" style="margin-top:10px">Submit TWR</button>';
+        setTimeout(function(){
+          const submit = document.getElementById('twrSubmit');
+          if(submit){
+            submit.addEventListener('click', function(){
+              const input = document.getElementById('twrInput');
+              const val = input ? input.value.trim() : '';
+              if(val.length < 8){ toast('Add a complete because statement.'); return; }
+              state.twrComplete = true;
+              UI.feedback.textContent = 'Strong explanation. You connected the dependent variable to the independent variable.';
+              showResults();
+            });
+          }
+        }, 0);
       } else if(state.missionsComplete % CONFIG.maxMissionsBeforeBossPrompt === 0){
+        UI.feedback.textContent = 'Nice work. You physically graphed the correct point.';
         toast('Boss round unlocked. Press Boss Round when ready.');
       } else {
+        UI.feedback.textContent = 'Nice work. You physically graphed the correct point.';
         toast('Beacon placed correctly.');
       }
       updateHud();
@@ -787,11 +836,17 @@
       state.bossMode = false;
       state.missionResolved = false;
       UI.resultsModal.style.display = 'none';
-      loadMission(0);
+      scene.background = new THREE.Color(0x263238);
+    loadMission(0);
     }
 
     UI.scanBtn.addEventListener('click', scanTarget);
-    UI.placeBtn.addEventListener('click', placeBeacon);
+    UI.sortBtn.addEventListener('click', function(){
+      state.tableSorted = true;
+      UI.tableBlock.textContent = formatTable(state.current);
+      toast('Table sorted by x-values.');
+      awardBadge('Data Sorter');
+    });
     UI.nextBtn.addEventListener('click', () => {
       UI.resultsModal.style.display = 'none';
       state.challengeIndex += 1;
@@ -805,7 +860,13 @@
     UI.restartResults.addEventListener('click', restartGame);
 
     const keys = new Set();
-    window.addEventListener('keydown', e => { keys.add(e.key.toLowerCase()); if(['w','a','s','d','q','e'].includes(e.key.toLowerCase())) e.preventDefault(); audio.enable(); });
+    window.addEventListener('keydown', e => {
+      const k = e.key.toLowerCase();
+      keys.add(k);
+      if(['w','a','s','d','q','e',' '].includes(k)) e.preventDefault();
+      if(k === ' ') placeBeacon();
+      audio.enable();
+    });
     window.addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 
     window.addEventListener('resize', () => {
@@ -826,11 +887,27 @@
         dir.normalize().multiplyScalar(CONFIG.heroSpeed * (state.bossMode ? 1.08 : 1));
         hero.group.position.add(dir);
         hero.group.position.x = THREE.MathUtils.clamp(hero.group.position.x, -10, 30);
-        hero.group.position.y = THREE.MathUtils.clamp(hero.group.position.y, 0, 10);
+        hero.group.position.y = THREE.MathUtils.clamp(hero.group.position.y, 0, 28);
         hero.group.position.z = THREE.MathUtils.clamp(hero.group.position.z, -18, 18);
       }
       hero.group.rotation.y += 0.02;
       hero.ring.rotation.z += 0.04;
+      if(state.current && state.current.__graph){
+        const g = state.current.__graph;
+        if(!g.guideX){
+          g.guideX = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]), new THREE.LineBasicMaterial({ color:0x009688, transparent:true, opacity:.8 }));
+          g.guideY = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]), new THREE.LineBasicMaterial({ color:0xFF7043, transparent:true, opacity:.8 }));
+          graphGroup.add(g.guideX, g.guideY);
+        }
+        const clampedX = THREE.MathUtils.clamp(hero.group.position.x, 0, g.maxX * g.scaleX);
+        const clampedY = THREE.MathUtils.clamp(hero.group.position.y, 0, g.maxY * g.scaleY);
+        g.guideX.geometry.setFromPoints([new THREE.Vector3(clampedX,0,0), new THREE.Vector3(clampedX,clampedY,0)]);
+        g.guideY.geometry.setFromPoints([new THREE.Vector3(0,clampedY,0), new THREE.Vector3(clampedX,clampedY,0)]);
+        const currentX = Math.round(clampedX / g.scaleX);
+        const currentY = Math.round(clampedY / g.scaleY);
+        state.canDeploy = Math.abs(clampedX - g.target.position.x) <= CONFIG.targetToleranceX && Math.abs(clampedY - g.target.position.y) <= CONFIG.targetToleranceY && Math.abs(hero.group.position.z - g.target.position.z) <= CONFIG.targetToleranceZ;
+        UI.hudObjective.textContent = 'Target ' + state.current.targetPair[0] + ', ' + state.current.targetPair[1] + ' | Your laser guides: (' + currentX + ', ' + currentY + ')' + (state.canDeploy ? ' • READY TO DEPLOY' : '');
+      }
     }
 
     let clock = new THREE.Clock();
