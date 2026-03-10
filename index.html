@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variable Vertex 3D | Grade 6</title>
+  <style>
+    :root{
+      --bg1:#08131d;
+      --bg2:#102636;
+      --panel:#12293bcc;
+      --panelSolid:#11283a;
+      --card:#173246;
+      --line:#2b5a73;
+      --teal:#4dd0c8;
+      --coral:#ff8a65;
+      --gold:#ffd166;
+      --mint:#9be7c4;
+      --ink:#eaf6fb;
+      --muted:#aac6d6;
+      --danger:#ff6b6b;
+      --ok:#8ee28e;
+      --shadow:0 14px 38px rgba(0,0,0,.35);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at top,#143248 0%,#0b1722 55%,#061018 100%);color:var(--ink);overflow:hidden}
+    #app{display:grid;grid-template-columns:360px 1fr;height:100%}
+    #sidebar{background:linear-gradient(180deg,#102638f0,#0d1f2ef0);backdrop-filter:blur(8px);border-right:1px solid rgba(255,255,255,.08);padding:18px;display:flex;flex-direction:column;gap:14px;overflow:auto}
+    #sceneWrap{position:relative}
+    #scene{width:100%;height:100%}
+    .brand{display:flex;align-items:center;gap:12px;padding:8px 4px 2px}
+    .logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--teal),#7cc7ff);display:grid;place-items:center;color:#08333f;font-weight:900;font-size:1.2rem;box-shadow:var(--shadow)}
+    h1{font-size:1.35rem;line-height:1.1;margin:0}
+    .sub{color:var(--muted);font-size:.9rem}
+    .panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+    .panel h2{margin:0 0 8px;font-size:1rem}
+    .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .stat{background:rgba(255,255,255,.04);border-radius:14px;padding:10px;border:1px solid rgba(255,255,255,.06)}
+    .label{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+    .value{font-size:1.25rem;font-weight:800;margin-top:4px}
+    .mission{line-height:1.4;color:var(--ink)}
+    .mission strong{color:var(--gold)}
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{appearance:none;border:none;border-radius:14px;padding:12px 14px;font-weight:800;cursor:pointer;transition:.18s transform,.18s filter,.18s opacity;box-shadow:var(--shadow)}
+    button:hover{transform:translateY(-1px)}
+    button:active{transform:translateY(1px)}
+    .primary{background:linear-gradient(135deg,var(--teal),#7ce8de);color:#07313c}
+    .secondary{background:linear-gradient(135deg,#304a5c,#253847);color:var(--ink);border:1px solid rgba(255,255,255,.08)}
+    .accent{background:linear-gradient(135deg,var(--coral),#ffb089);color:#45180f}
+    .wide{grid-column:1 / -1}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);font-size:.84rem;color:var(--muted)}
+    .choices{display:grid;gap:10px;margin-top:10px}
+    .choice{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--ink);text-align:left}
+    .choice.correct{outline:2px solid var(--ok);background:rgba(142,226,142,.12)}
+    .choice.wrong{outline:2px solid var(--danger);background:rgba(255,107,107,.12)}
+    .feedback{min-height:56px;font-weight:700;line-height:1.35}
+    .mini{font-size:.88rem;color:var(--muted);line-height:1.45}
+    .equation{font-family:"SFMono-Regular",Consolas,Menlo,monospace;background:#0b1824;border:1px solid rgba(255,255,255,.08);padding:10px 12px;border-radius:12px;color:#c8eef2}
+    #crosshair{position:absolute;left:50%;top:50%;width:16px;height:16px;transform:translate(-50%,-50%);pointer-events:none;opacity:.9}
+    #crosshair::before,#crosshair::after{content:"";position:absolute;background:rgba(255,255,255,.85)}
+    #crosshair::before{left:7px;top:0;width:2px;height:16px}
+    #crosshair::after{top:7px;left:0;width:16px;height:2px}
+    #hudTop{position:absolute;left:18px;right:18px;top:18px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+    .hudCard{background:rgba(10,22,32,.68);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow)}
+    .hudRow{display:flex;gap:10px;align-items:center}
+    .bar{width:180px;height:12px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+    .bar > span{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--teal))}
+    #toast{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);background:rgba(9,20,30,.92);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 16px;min-width:280px;max-width:min(92vw,720px);text-align:center;box-shadow:var(--shadow);font-weight:800;opacity:0;pointer-events:none;transition:.25s opacity,.25s transform}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+    .legend{display:grid;gap:8px}
+    .legendItem{display:flex;align-items:center;gap:10px;font-size:.9rem;color:var(--muted)}
+    .swatch{width:16px;height:16px;border-radius:4px;border:1px solid rgba(255,255,255,.18)}
+    .footerNote{font-size:.82rem;color:var(--muted);line-height:1.4}
+    @media (max-width:1050px){
+      #app{grid-template-columns:1fr}
+      #sidebar{position:absolute;z-index:5;inset:auto 12px 12px 12px;max-height:48%;border-right:none;border:1px solid rgba(255,255,255,.08)}
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <div class="brand">
+        <div class="logo">3D</div>
+        <div>
+          <h1>Variable Vertex</h1>
+          <div class="sub">Grade 6 • Independent & Dependent Variables • 3D Graphing</div>
+        </div>
+      </div>
+
+      <section class="panel">
+        <h2>Mission</h2>
+        <div id="missionText" class="mission"></div>
+        <div class="choices" id="answerChoices"></div>
+        <div class="feedback" id="feedback"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Command Deck</h2>
+        <div class="controls">
+          <button id="scanBtn" class="primary">Scan Point</button>
+          <button id="shootBtn" class="accent">Place Beacon</button>
+          <button id="nextBtn" class="secondary wide">Next Challenge</button>
+          <button id="resetCamBtn" class="secondary">Reset View</button>
+          <button id="hintBtn" class="secondary">Hint</button>
+        </div>
+        <div class="mini" style="margin-top:10px">
+          Move: <strong>W A S D</strong> or drag • Look: <strong>mouse</strong> • Up/Down: <strong>Q / E</strong><br>
+          Students identify which variable belongs on the <strong>x-axis</strong> and <strong>y-axis</strong>, then graph points from tables.
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Progress</h2>
+        <div class="stats">
+          <div class="stat"><div class="label">Score</div><div id="score" class="value">0</div></div>
+          <div class="stat"><div class="label">Level</div><div id="level" class="value">1</div></div>
+          <div class="stat"><div class="label">Streak</div><div id="streak" class="value">0</div></div>
+          <div class="stat"><div class="label">XP</div><div id="xp" class="value">0</div></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Current Data Table</h2>
+        <div id="tableBlock" class="equation">Waiting for mission…</div>
+        <div class="chips" id="badgeRow" style="margin-top:10px"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Legend</h2>
+        <div class="legend">
+          <div class="legendItem"><span class="swatch" style="background:#4dd0c8"></span> X-axis / Independent variable</div>
+          <div class="legendItem"><span class="swatch" style="background:#ff8a65"></span> Y-axis / Dependent variable</div>
+          <div class="legendItem"><span class="swatch" style="background:#ffd166"></span> Target point to graph</div>
+          <div class="legendItem"><span class="swatch" style="background:#9be7c4"></span> Correct beacon placed</div>
+        </div>
+      </section>
+
+      <section class="panel footerNote">
+        Teacher-ready skills: identifying independent and dependent variables, matching variables to axes, reading ordered pairs, and graphing table values on a coordinate plane.
+      </section>
+    </aside>
+
+    <main id="sceneWrap">
+      <div id="scene"></div>
+      <div id="crosshair"></div>
+      <div id="hudTop">
+        <div class="hudCard">
+          <div class="hudRow"><strong>Objective:</strong> <span id="hudObjective">Load challenge…</span></div>
+        </div>
+        <div class="hudCard">
+          <div class="hudRow"><span>Level XP</span><div class="bar"><span id="xpBar"></span></div></div>
+        </div>
+      </div>
+      <div id="toast"></div>
+    </main>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+
+    const el = {
+      scene: document.getElementById('scene'),
+      missionText: document.getElementById('missionText'),
+      answerChoices: document.getElementById('answerChoices'),
+      feedback: document.getElementById('feedback'),
+      score: document.getElementById('score'),
+      level: document.getElementById('level'),
+      streak: document.getElementById('streak'),
+      xp: document.getElementById('xp'),
+      xpBar: document.getElementById('xpBar'),
+      tableBlock: document.getElementById('tableBlock'),
+      badgeRow: document.getElementById('badgeRow'),
+      hudObjective: document.getElementById('hudObjective'),
+      toast: document.getElementById('toast'),
+      scanBtn: document.getElementById('scanBtn'),
+      shootBtn: document.getElementById('shootBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+      resetCamBtn: document.getElementById('resetCamBtn'),
+      hintBtn: document.getElementById('hintBtn'),
+    };
+
+    const state = {
+      score: 0,
+      streak: 0,
+      xp: 0,
+      level: 1,
+      badges: new Set(),
+      current: null,
+      challengeIndex: 0,
+      placed: false,
+      scanTarget: null,
+      beacon: null,
+      plottedDots: [],
+      selectedChoice: null,
+    };
+
+    const world = {
+      range: 10,
+      unit: 2,
+      origin: new THREE.Vector3(0,0,0),
+    };
+
+    const scenarios = [
+      {
+        title: 'Movie Tickets',
+        independent: 'number of tickets',
+        dependent: 'total cost',
+        xLabel: 'tickets',
+        yLabel: 'cost',
+        ruleText: 'Each ticket costs $8.',
+        pairs: [[1,8],[2,16],[3,24],[4,32]],
+        prompt: 'Identify the independent variable, then graph the ordered pair for 3 tickets.',
+        targetPair: [3,24],
+      },
+      {
+        title: 'Hours and Pay',
+        independent: 'hours worked',
+        dependent: 'money earned',
+        xLabel: 'hours',
+        yLabel: 'pay',
+        ruleText: 'You earn $12 for each hour worked.',
+        pairs: [[1,12],[2,24],[3,36],[4,48]],
+        prompt: 'Which variable belongs on the x-axis, and where does the point for 2 hours go?',
+        targetPair: [2,24],
+      },
+      {
+        title: 'Pages Read',
+        independent: 'minutes reading',
+        dependent: 'pages read',
+        xLabel: 'minutes',
+        yLabel: 'pages',
+        ruleText: 'A student reads 5 pages every minute.',
+        pairs: [[1,5],[2,10],[3,15],[4,20]],
+        prompt: 'Read the table. Then place the ordered pair for 4 minutes.',
+        targetPair: [4,20],
+      },
+      {
+        title: 'Plant Growth',
+        independent: 'days',
+        dependent: 'plant height',
+        xLabel: 'days',
+        yLabel: 'height',
+        ruleText: 'The plant grows 3 cm each day.',
+        pairs: [[1,3],[2,6],[3,9],[4,12]],
+        prompt: 'Identify the dependent variable and graph the point for day 3.',
+        targetPair: [3,9],
+      },
+      {
+        title: 'Biking Distance',
+        independent: 'hours biking',
+        dependent: 'miles traveled',
+        xLabel: 'hours',
+        yLabel: 'miles',
+        ruleText: 'The rider travels 6 miles per hour.',
+        pairs: [[1,6],[2,12],[3,18],[4,24]],
+        prompt: 'Find the point that matches 4 hours of biking.',
+        targetPair: [4,24],
+      },
+    ];
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x08131d, 30, 90);
+
+    const camera = new THREE.PerspectiveCamera(60, el.scene.clientWidth / el.scene.clientHeight, 0.1, 300);
+    camera.position.set(16, 16, 20);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(el.scene.clientWidth, el.scene.clientHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    el.scene.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 8, 0);
+    controls.minDistance = 10;
+    controls.maxDistance = 48;
+    controls.maxPolarAngle = Math.PI / 2.05;
+
+    scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+    const dir = new THREE.DirectionalLight(0xd8f4ff, 1.9);
+    dir.position.set(20, 26, 10);
+    scene.add(dir);
+
+    const hemi = new THREE.HemisphereLight(0x7fdcff, 0x0d1824, 1.3);
+    scene.add(hemi);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(38, 80),
+      new THREE.MeshStandardMaterial({ color: 0x0a1620, roughness: 0.96, metalness: 0.05 })
+    );
+    floor.rotation.x = -Math.PI/2;
+    floor.position.y = -0.05;
+    scene.add(floor);
+
+    const starGeo = new THREE.BufferGeometry();
+    const starCount = 900;
+    const starPos = new Float32Array(starCount * 3);
+    for(let i=0;i<starCount;i++){
+      starPos[i*3] = (Math.random()-0.5) * 180;
+      starPos[i*3+1] = Math.random() * 110 + 10;
+      starPos[i*3+2] = (Math.random()-0.5) * 180;
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xd9f6ff, size: 0.45 }));
+    scene.add(stars);
+
+    const graphGroup = new THREE.Group();
+    scene.add(graphGroup);
+
+    function toast(msg){
+      el.toast.textContent = msg;
+      el.toast.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(()=>el.toast.classList.remove('show'), 1600);
+    }
+
+    function updateHud(){
+      el.score.textContent = state.score;
+      el.level.textContent = state.level;
+      el.streak.textContent = state.streak;
+      el.xp.textContent = state.xp;
+      const nextLevelXP = 120;
+      el.xpBar.style.width = `${(state.xp % nextLevelXP) / nextLevelXP * 100}%`;
+      el.badgeRow.innerHTML = [...state.badges].map(b => `<span class="chip">${b}</span>`).join('') || '<span class="chip">No badges yet</span>';
+    }
+
+    function addBadge(name){
+      if(!state.badges.has(name)){
+        state.badges.add(name);
+        toast(`Badge earned: ${name}`);
+        updateHud();
+      }
+    }
+
+    function clearGraph(){
+      while(graphGroup.children.length) graphGroup.remove(graphGroup.children[0]);
+      state.plottedDots = [];
+      state.beacon = null;
+      state.scanTarget = null;
+      state.placed = false;
+    }
+
+    function addTextSprite(text, color='#ffffff', size=256){
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = 'rgba(7,18,28,.82)';
+      roundRect(ctx, 10, 40, 492, 176, 24); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 4; roundRect(ctx, 10, 40, 492, 176, 24); ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.font = '700 90px Inter, Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 256, 128);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const material = new THREE.SpriteMaterial({ map: texture, transparent:true });
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(4.8, 2.4, 1);
+      return sprite;
+    }
+
+    function roundRect(ctx, x, y, w, h, r){
+      ctx.beginPath();
+      ctx.moveTo(x+r,y);
+      ctx.arcTo(x+w,y,x+w,y+h,r);
+      ctx.arcTo(x+w,y+h,x,y+h,r);
+      ctx.arcTo(x,y+h,x,y,r);
+      ctx.arcTo(x,y,x+w,y,r);
+      ctx.closePath();
+    }
+
+    function buildGraphAxes(data){
+      clearGraph();
+
+      const maxY = Math.max(...data.pairs.map(p=>p[1]), data.targetPair[1]);
+      const scaleY = maxY > 12 ? 0.5 : 1;
+      const yTicks = Math.ceil(maxY / 4);
+      const axisMatX = new THREE.MeshStandardMaterial({ color: 0x4dd0c8, emissive: 0x134241, emissiveIntensity: 0.55 });
+      const axisMatY = new THREE.MeshStandardMaterial({ color: 0xff8a65, emissive: 0x522212, emissiveIntensity: 0.45 });
+      const tickMat = new THREE.MeshStandardMaterial({ color: 0xdff8ff });
+
+      const xAxis = new THREE.Mesh(new THREE.BoxGeometry(world.range * world.unit + 2, .16, .16), axisMatX);
+      xAxis.position.set((world.range * world.unit)/2, 0.2, 0);
+      graphGroup.add(xAxis);
+
+      const yAxis = new THREE.Mesh(new THREE.BoxGeometry(.16, maxY * scaleY + 2, .16), axisMatY);
+      yAxis.position.set(0, (maxY * scaleY)/2, 0);
+      graphGroup.add(yAxis);
+
+      const gridLineMat = new THREE.LineBasicMaterial({ color: 0x2a4a60, transparent:true, opacity:.9 });
+      for(let i=0;i<=world.range;i++){
+        const x = i * world.unit;
+        const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x,0,0), new THREE.Vector3(x,maxY*scaleY,0)]);
+        graphGroup.add(new THREE.Line(geo, gridLineMat));
+      }
+      for(let j=0;j<=maxY;j+=Math.max(1,Math.ceil(maxY/8))){
+        const y = j * scaleY;
+        const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,y,0), new THREE.Vector3(world.range*world.unit,y,0)]);
+        graphGroup.add(new THREE.Line(geo, gridLineMat));
+      }
+
+      for(let i=0;i<=world.range;i++){
+        const tick = new THREE.Mesh(new THREE.BoxGeometry(.1,.5,.1), tickMat);
+        tick.position.set(i*world.unit,0.1,0);
+        graphGroup.add(tick);
+        const label = addTextSprite(String(i), '#c5ffff');
+        label.position.set(i*world.unit, -1.1, 0);
+        label.scale.set(1.8,.9,1);
+        graphGroup.add(label);
+      }
+
+      const yStep = chooseYLabelStep(maxY);
+      for(let y=0;y<=maxY;y+=yStep){
+        const tick = new THREE.Mesh(new THREE.BoxGeometry(.5,.1,.1), tickMat);
+        tick.position.set(0,y*scaleY,0);
+        graphGroup.add(tick);
+        const label = addTextSprite(String(y), '#ffd7c7');
+        label.position.set(-1.6, y*scaleY, 0);
+        label.scale.set(2.1,.9,1);
+        graphGroup.add(label);
+      }
+
+      const xLabel = addTextSprite(`x: ${data.xLabel}`, '#94fff2');
+      xLabel.position.set(world.range * world.unit - 2, -2.5, 0);
+      xLabel.scale.set(5.5, 1.3, 1);
+      graphGroup.add(xLabel);
+
+      const yLabel = addTextSprite(`y: ${data.yLabel}`, '#ffc5b1');
+      yLabel.position.set(-2.8, maxY * scaleY - 1, 0);
+      yLabel.scale.set(5.5, 1.3, 1);
+      graphGroup.add(yLabel);
+
+      const panel = new THREE.Mesh(
+        new THREE.BoxGeometry(world.range * world.unit + 2, maxY * scaleY + 2, .2),
+        new THREE.MeshStandardMaterial({ color: 0x102333, transparent:true, opacity:.16 })
+      );
+      panel.position.set((world.range * world.unit)/2, (maxY * scaleY)/2, -0.16);
+      graphGroup.add(panel);
+
+      data.pairs.forEach((pair, idx) => {
+        const [x,y] = pair;
+        const marker = new THREE.Mesh(
+          new THREE.SphereGeometry(0.3, 20, 20),
+          new THREE.MeshStandardMaterial({ color: 0x587e95, transparent:true, opacity:.45, emissive: 0x1a2a38, emissiveIntensity:.8 })
+        );
+        marker.position.set(x * world.unit, y * scaleY, 0);
+        graphGroup.add(marker);
+        state.plottedDots.push(marker);
+      });
+
+      const [tx,ty] = data.targetPair;
+      const target = new THREE.Mesh(
+        new THREE.TorusGeometry(0.55, 0.12, 16, 40),
+        new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0x7a5d08, emissiveIntensity: 1 })
+      );
+      target.rotation.x = Math.PI/2;
+      target.position.set(tx * world.unit, ty * scaleY, 0.02);
+      graphGroup.add(target);
+      state.scanTarget = { mesh: target, worldPos: target.position.clone(), scaleY, maxY };
+
+      const titleSprite = addTextSprite(data.title, '#ffffff');
+      titleSprite.position.set(world.range * world.unit/2, maxY*scaleY + 2.4, 0);
+      titleSprite.scale.set(7, 1.55, 1);
+      graphGroup.add(titleSprite);
+
+      const relationSprite = addTextSprite(data.ruleText, '#ffe7a8');
+      relationSprite.position.set(world.range * world.unit/2, maxY*scaleY + 4.2, 0);
+      relationSprite.scale.set(8.2, 1.35, 1);
+      graphGroup.add(relationSprite);
+    }
+
+    function chooseYLabelStep(maxY){
+      if(maxY <= 12) return 2;
+      if(maxY <= 24) return 4;
+      if(maxY <= 50) return 6;
+      return 10;
+    }
+
+    function shuffle(arr){
+      const a = [...arr];
+      for(let i=a.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]] = [a[j],a[i]];
+      }
+      return a;
+    }
+
+    function formatTable(data){
+      const rows = data.pairs.map(([x,y]) => `${data.xLabel.padEnd(8,' ')} ${x}  →  ${data.yLabel.padEnd(8,' ')} ${y}`);
+      return `${data.title}\n${data.ruleText}\n\n${rows.join('\n')}`;
+    }
+
+    function loadChallenge(){
+      state.selectedChoice = null;
+      state.placed = false;
+      el.feedback.textContent = '';
+      const data = scenarios[state.challengeIndex % scenarios.length];
+      state.current = data;
+      buildGraphAxes(data);
+
+      const options = shuffle([
+        { key:'ind', text:`Independent variable: ${data.independent}`, correct:true },
+        { key:'dep', text:`Dependent variable: ${data.dependent}`, correct:false },
+        { key:'x', text:`Put ${data.yLabel} on the x-axis`, correct:false },
+        { key:'y', text:`Put ${data.xLabel} on the y-axis`, correct:false },
+      ]).slice(0,3);
+      if(!options.some(o=>o.correct)) options[0] = { key:'ind', text:`Independent variable: ${data.independent}`, correct:true };
+
+      el.answerChoices.innerHTML = '';
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.textContent = opt.text;
+        btn.addEventListener('click', () => selectChoice(btn, opt));
+        el.answerChoices.appendChild(btn);
+      });
+
+      el.missionText.innerHTML = `<strong>${data.prompt}</strong><br><span class="mini">First, choose the independent variable. Then scan the glowing target and place the beacon on the correct point.</span>`;
+      el.tableBlock.textContent = formatTable(data);
+      el.hudObjective.textContent = `Choose the independent variable, then graph (${data.targetPair[0]}, ${data.targetPair[1]})`;
+      updateHud();
+      toast(`Challenge ${state.challengeIndex + 1}: ${data.title}`);
+    }
+
+    function selectChoice(btn, opt){
+      if(state.selectedChoice) return;
+      state.selectedChoice = opt;
+      [...el.answerChoices.children].forEach(c=>c.disabled = true);
+      if(opt.correct){
+        btn.classList.add('correct');
+        el.feedback.textContent = `Correct. The independent variable is ${state.current.independent}. It belongs on the x-axis.`;
+        gain(20, true);
+        addBadge('Axis Ace');
+      } else {
+        btn.classList.add('wrong');
+        const correctText = `Independent variable: ${state.current.independent}`;
+        [...el.answerChoices.children].forEach(c=>{ if(c.textContent === correctText) c.classList.add('correct'); });
+        el.feedback.textContent = `Not quite. The independent variable is ${state.current.independent}, so it belongs on the x-axis.`;
+        gain(0, false);
+      }
+    }
+
+    function gain(points, success){
+      if(success){
+        state.score += points;
+        state.streak += 1;
+        state.xp += points;
+        if(state.streak >= 3) addBadge('Variable Detective');
+        const neededLevel = Math.floor(state.xp / 120) + 1;
+        if(neededLevel > state.level){
+          state.level = neededLevel;
+          toast(`Level up! You reached Level ${state.level}`);
+        }
+      } else {
+        state.streak = 0;
+      }
+      updateHud();
+    }
+
+    function resetView(){
+      camera.position.set(16,16,20);
+      controls.target.set(0,8,0);
+      controls.update();
+    }
+
+    function scanPoint(){
+      if(!state.selectedChoice){
+        toast('Choose the independent variable first.');
+        return;
+      }
+      if(!state.selectedChoice.correct){
+        toast('Fix the variable choice before scanning.');
+        return;
+      }
+      const target = state.scanTarget?.mesh;
+      if(!target) return;
+      target.scale.setScalar(1.6);
+      setTimeout(()=>target.scale.setScalar(1), 300);
+      toast(`Target located: graph the point (${state.current.targetPair[0]}, ${state.current.targetPair[1]}).`);
+    }
+
+    function placeBeacon(){
+      if(!state.selectedChoice){
+        toast('Answer the variable question first.');
+        return;
+      }
+      if(!state.selectedChoice.correct){
+        toast('Choose the correct independent variable first.');
+        return;
+      }
+      if(state.placed){
+        toast('Beacon already placed. Go to the next challenge.');
+        return;
+      }
+      const target = state.scanTarget;
+      const beacon = new THREE.Mesh(
+        new THREE.SphereGeometry(0.44, 20, 20),
+        new THREE.MeshStandardMaterial({ color: 0x9be7c4, emissive: 0x245d43, emissiveIntensity: 1 })
+      );
+      beacon.position.copy(target.worldPos);
+      graphGroup.add(beacon);
+      state.beacon = beacon;
+      state.placed = true;
+      gain(30, true);
+      addBadge('Graph Master');
+      el.feedback.textContent = `Nice work. You graphed (${state.current.targetPair[0]}, ${state.current.targetPair[1]}) correctly. ${state.current.dependent} depends on ${state.current.independent}.`;
+      toast('Beacon placed on the correct point.');
+    }
+
+    function nextChallenge(){
+      state.challengeIndex += 1;
+      loadChallenge();
+    }
+
+    function showHint(){
+      const s = state.current;
+      if(!s) return;
+      toast(`Hint: ${s.independent} goes on the x-axis. Use the pair (${s.targetPair[0]}, ${s.targetPair[1]}).`);
+    }
+
+    el.scanBtn.addEventListener('click', scanPoint);
+    el.shootBtn.addEventListener('click', placeBeacon);
+    el.nextBtn.addEventListener('click', nextChallenge);
+    el.resetCamBtn.addEventListener('click', resetView);
+    el.hintBtn.addEventListener('click', showHint);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = el.scene.clientWidth / el.scene.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(el.scene.clientWidth, el.scene.clientHeight);
+    });
+
+    let pulse = 0;
+    function animate(){
+      requestAnimationFrame(animate);
+      pulse += 0.03;
+      if(state.scanTarget?.mesh){
+        const m = state.scanTarget.mesh;
+        m.rotation.z += 0.025;
+        const s = 1 + Math.sin(pulse) * 0.08;
+        m.scale.setScalar(s);
+      }
+      stars.rotation.y += 0.0008;
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    loadChallenge();
+    resetView();
+    animate();
+  </script>
+</body>
+</html>
